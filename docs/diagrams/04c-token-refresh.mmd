@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant FE as Frontend
+    participant GW as Gateway
+    participant AUTH as Auth
+    participant MS as Microservicio
+
+    FE->>GW: GET /api/historias-clinicas
+    GW->>MS: Proxy
+    MS-->>GW: 401 Unauthorized
+    GW-->>FE: 401
+    FE->>FE: Axios interceptor detecta 401
+    FE->>GW: POST /api/auth/refresh con refreshToken
+    GW->>AUTH: Proxy
+    AUTH->>AUTH: Valida refresh token
+    AUTH->>AUTH: Genera nuevo par de tokens
+    AUTH-->>FE: Nuevo accessToken y refreshToken
+    FE->>FE: Actualiza localStorage
+    FE->>GW: Reintenta request original con nuevo JWT
+    GW->>MS: Proxy
+    MS-->>FE: 200 OK con datos

@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant O as Obstetra
+    participant FE as Frontend
+    participant GW as Gateway
+    participant MS as Microservicio
+
+    O->>FE: Crear paciente
+    FE->>FE: Axios interceptor agrega Bearer JWT
+    FE->>GW: POST /api/pacientes
+    GW->>MS: Proxy con header JWT
+    MS->>MS: JwtAuthenticationFilter valida firma HMAC
+    MS->>MS: Extrae claims userId y email y rol
+    MS->>MS: Verifica ownership del recurso
+    MS-->>GW: 201 Created
+    GW-->>FE: Response

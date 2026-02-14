@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Historia Clinica Obstetrica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #333;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        .header h2 {
+            font-size: 12px;
+            font-weight: normal;
+            color: #666;
+        }
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 60px;
+            color: rgba(200, 200, 200, 0.2);
+            z-index: -1;
+            white-space: nowrap;
+        }
+        .metadata {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 8px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+        }
+        .metadata-item {
+            display: inline-block;
+            margin-right: 20px;
+        }
+        .metadata-item strong {
+            color: #555;
+        }
+        .section {
+            margin-bottom: 15px;
+            page-break-inside: avoid;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            background-color: #e8e8e8;
+            padding: 5px 10px;
+            border-left: 4px solid #333;
+            margin-bottom: 8px;
+        }
+        .section-content {
+            padding: 5px 10px;
+            white-space: pre-wrap;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 5px 8px;
+            text-align: left;
+            font-size: 10px;
+        }
+        th {
+            background-color: #e8e8e8;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 10px;
+            border-top: 1px solid #999;
+            text-align: center;
+            font-size: 9px;
+            color: #888;
+        }
+        .firma-area {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .firma-linea {
+            width: 200px;
+            text-align: center;
+            border-top: 1px solid #333;
+            padding-top: 5px;
+            font-size: 10px;
+        }
+        .notas {
+            padding: 8px;
+            background-color: #fffff0;
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark">HISTORIA CLINICA</div>
+
+    <div class="header">
+        <h1>HISTORIA CLINICA PERINATAL</h1>
+        <h2>Sistema de Historia Clinica Obstetrica</h2>
+    </div>
+
+    <div class="metadata">
+        <span class="metadata-item"><strong>ID:</strong> <span th:text="${historia.id}"></span></span>
+        <span class="metadata-item"><strong>Version:</strong> <span th:text="${historia.version}"></span></span>
+        <span class="metadata-item"><strong>Estado:</strong> <span th:text="${historia.estado}"></span></span>
+        <span class="metadata-item" th:if="${historia.createdAt != null}">
+            <strong>Fecha:</strong> <span th:text="${#temporals.format(historia.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+        </span>
+    </div>
+
+    <!-- Datos del paciente -->
+    <div class="section" th:if="${historia.pacienteNombre != null}">
+        <div class="section-title">DATOS DE LA PACIENTE</div>
+        <table>
+            <tr>
+                <th>Nombre</th>
+                <td th:text="${historia.pacienteNombre + ' ' + historia.pacienteApellido}"></td>
+                <th>DNI</th>
+                <td th:text="${historia.pacienteDni}"></td>
+            </tr>
+            <tr>
+                <th>Fecha Nacimiento</th>
+                <td th:text="${historia.pacienteFechaNacimiento}"></td>
+                <th>Telefono</th>
+                <td th:text="${historia.pacienteTelefono}"></td>
+            </tr>
+            <tr>
+                <th>Direccion</th>
+                <td colspan="3" th:text="${historia.pacienteDireccion}"></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Secciones clinicas -->
+    <div th:each="seccion : ${historia.secciones}" class="section">
+        <div class="section-title" th:text="${seccion.tipo}"></div>
+        <div class="section-content" th:text="${seccion.contenido}"></div>
+    </div>
+
+    <!-- Eventos obstetricos -->
+    <div class="section" th:if="${historia.eventos != null and !historia.eventos.isEmpty()}">
+        <div class="section-title">EVENTOS OBSTETRICOS</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Fecha</th>
+                    <th>Semana Gestacional</th>
+                    <th>Observaciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="evento : ${historia.eventos}">
+                    <td th:text="${evento.tipo}"></td>
+                    <td th:text="${evento.fecha != null ? #temporals.format(evento.fecha, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+                    <td th:text="${evento.semanaGestacional != null ? evento.semanaGestacional : '-'}"></td>
+                    <td th:text="${evento.observaciones}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Medicamentos -->
+    <div class="section" th:if="${historia.medicamentos != null and !historia.medicamentos.isEmpty()}">
+        <div class="section-title">MEDICAMENTOS</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Dosis</th>
+                    <th>Via</th>
+                    <th>Frecuencia</th>
+                    <th>Duracion</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="med : ${historia.medicamentos}">
+                    <td th:text="${med.nombre}"></td>
+                    <td th:text="${med.dosis}"></td>
+                    <td th:text="${med.via}"></td>
+                    <td th:text="${med.frecuencia}"></td>
+                    <td th:text="${med.duracion}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Notas generales -->
+    <div class="section" th:if="${historia.notasGenerales != null and !historia.notasGenerales.isEmpty()}">
+        <div class="section-title">NOTAS GENERALES</div>
+        <div class="notas" th:text="${historia.notasGenerales}"></div>
+    </div>
+
+    <!-- Firma -->
+    <div class="firma-area">
+        <div class="firma-linea">Firma del Profesional</div>
+        <div class="firma-linea">Sello</div>
+    </div>
+
+    <div class="footer">
+        Documento generado automaticamente por el Sistema de Historia Clinica Obstetrica.
+        Este documento tiene caracter confidencial.
+    </div>
+</body>
+</html>

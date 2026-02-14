@@ -1,0 +1,27 @@
+stateDiagram-v2
+    [*] --> BORRADOR : Crear historia
+
+    BORRADOR --> BORRADOR : Actualizar secciones<br/>eventos, medicamentos
+    BORRADOR --> EN_REVISION : pasarARevision()
+
+    EN_REVISION --> FINALIZADA : finalizar()
+    EN_REVISION --> BORRADOR : Rechazar revision
+
+    FINALIZADA --> [*] : Inmutable
+    FINALIZADA --> BORRADOR : crearNuevaVersion()<br/>(nueva historia, version+1)
+
+    BORRADOR --> ANULADA : anular()
+    EN_REVISION --> ANULADA : anular()
+
+    ANULADA --> [*] : Terminal
+
+    note right of FINALIZADA
+        Una vez finalizada, la historia
+        es inmutable. Solo se puede
+        crear una nueva version.
+    end note
+
+    note right of ANULADA
+        Estado terminal.
+        No se puede revertir.
+    end note

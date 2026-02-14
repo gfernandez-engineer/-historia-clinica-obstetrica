@@ -1,0 +1,75 @@
+graph TB
+    subgraph Exterior["Actores Externos"]
+        REST_CLIENT["Cliente REST<br/>(API Gateway)"]
+        RABBIT_IN["RabbitMQ<br/>(Eventos entrantes)"]
+        RABBIT_OUT["RabbitMQ<br/>(Eventos salientes)"]
+        DATABASE[("PostgreSQL")]
+        HTTP_EXT["Servicio Externo<br/>(ej: ms-historia desde ms-exportacion)"]
+    end
+
+    subgraph Hexagono["Microservicio (Arquitectura Hexagonal)"]
+
+        subgraph Adapters_In["Adaptadores de Entrada (Driving)"]
+            CTRL["<b>REST Controller</b><br/>@RestController<br/>DTOs Request/Response<br/>Validaciones Jakarta"]
+            LISTENER["<b>Event Listener</b><br/>@RabbitListener<br/>Consume AuditableEvent"]
+        end
+
+        subgraph Ports_In["Puertos de Entrada"]
+            UC1["CrearXxxUseCase"]
+            UC2["ObtenerXxxUseCase"]
+            UC3["ListarXxxUseCase"]
+            UC4["ActualizarXxxUseCase"]
+        end
+
+        subgraph Application["Capa de Aplicacion"]
+            SVC["<b>XxxService</b><br/>@Service @Transactional<br/>Implementa use cases<br/>Orquesta puertos de salida"]
+        end
+
+        subgraph Domain["Capa de Dominio"]
+            MODEL["<b>Modelos</b><br/>@Getter @Builder<br/>Entidades inmutables<br/>Reglas de negocio"]
+            EXC["<b>Excepciones</b><br/>DomainException<br/>ResourceNotFoundException"]
+        end
+
+        subgraph Ports_Out["Puertos de Salida"]
+            REPO_PORT["XxxRepositoryPort"]
+            EVENT_PORT["EventPublisherPort"]
+            EXT_PORT["ExternalServicePort"]
+        end
+
+        subgraph Adapters_Out["Adaptadores de Salida (Driven)"]
+            PERSIST["<b>Persistence Adapter</b><br/>JPA Entity + Repository<br/>toEntity() / toDomain()<br/>(manual, sin MapStruct)"]
+            PUB["<b>Event Publisher</b><br/>RabbitTemplate<br/>AuditableEvent"]
+            HTTP_CLIENT["<b>HTTP Client</b><br/>RestTemplate<br/>@LoadBalanced (Eureka)"]
+        end
+    end
+
+    REST_CLIENT -->|"HTTP Request"| CTRL
+    RABBIT_IN -->|"Mensaje"| LISTENER
+
+    CTRL --> UC1 & UC2 & UC3 & UC4
+    LISTENER --> UC1
+
+    UC1 & UC2 & UC3 & UC4 --> SVC
+    SVC --> MODEL
+    SVC --> EXC
+    SVC --> REPO_PORT & EVENT_PORT & EXT_PORT
+
+    REPO_PORT --> PERSIST
+    EVENT_PORT --> PUB
+    EXT_PORT --> HTTP_CLIENT
+
+    PERSIST --> DATABASE
+    PUB --> RABBIT_OUT
+    HTTP_CLIENT --> HTTP_EXT
+
+    classDef domain fill:#FFECB3,stroke:#FF8F00,color:#000
+    classDef app fill:#C8E6C9,stroke:#2E7D32,color:#000
+    classDef port fill:#BBDEFB,stroke:#1565C0,color:#000
+    classDef adapter fill:#F8BBD0,stroke:#AD1457,color:#000
+    classDef external fill:#E0E0E0,stroke:#616161,color:#000
+
+    class MODEL,EXC domain
+    class SVC app
+    class UC1,UC2,UC3,UC4,REPO_PORT,EVENT_PORT,EXT_PORT port
+    class CTRL,LISTENER,PERSIST,PUB,HTTP_CLIENT adapter
+    class REST_CLIENT,RABBIT_IN,RABBIT_OUT,DATABASE,HTTP_EXT external

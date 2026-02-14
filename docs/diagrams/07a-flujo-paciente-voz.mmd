@@ -1,0 +1,45 @@
+sequenceDiagram
+    participant O as Obstetra
+    participant FE as Frontend
+    participant WSA as WebSpeechAPI
+    participant GW as Gateway
+    participant HC as Historia
+    participant TR as Transcripcion
+    participant RMQ as RabbitMQ
+    participant AUD as Auditoria
+
+    O->>FE: Datos del paciente
+    FE->>GW: POST /api/pacientes
+    GW->>HC: Proxy
+    HC->>HC: Persiste Paciente
+    HC->>RMQ: historia.paciente.creado
+    RMQ->>AUD: Registra auditoria
+    HC-->>FE: Paciente creado
+
+    O->>FE: Nueva historia para paciente
+    FE->>GW: POST /api/historias-clinicas
+    GW->>HC: Proxy
+    HC->>HC: Crea Historia en BORRADOR
+    HC->>RMQ: historia.clinica.creada
+    RMQ->>AUD: Registra auditoria
+    HC-->>FE: Historia creada
+
+    O->>FE: Presiona Grabar nota clinica
+    FE->>WSA: SpeechRecognition start
+    WSA-->>FE: Texto transcrito en tiempo real
+    FE->>FE: Inserta texto en seccion activa
+
+    FE->>GW: POST /api/transcripciones/texto
+    GW->>TR: Proxy
+    TR->>TR: Normaliza terminologia CIE-10
+    TR->>RMQ: transcripcion.completada
+    RMQ->>AUD: Registra auditoria
+    TR-->>FE: Transcripcion normalizada
+
+    O->>FE: Revisa y corrige secciones
+    FE->>GW: PUT /api/historias-clinicas/id
+    GW->>HC: Proxy
+    HC->>HC: Actualiza secciones y eventos
+    HC->>RMQ: historia.clinica.actualizada
+    RMQ->>AUD: Registra auditoria
+    HC-->>FE: Historia actualizada

@@ -1,0 +1,97 @@
+{
+  "app": {
+    "title": "Obstetric Clinical Record",
+    "subtitle": "Voice-powered clinical management system"
+  },
+  "nav": {
+    "dashboard": "Home",
+    "pacientes": "Patients",
+    "historias": "Clinical Records",
+    "exportaciones": "Exports",
+    "auditoria": "Audit",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "nombre": "First Name",
+    "apellido": "Last Name",
+    "rol": "Role",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginHere": "Login here",
+    "registerHere": "Register here"
+  },
+  "pacientes": {
+    "title": "Patients",
+    "nuevo": "New Patient",
+    "buscar": "Search by name or ID...",
+    "dni": "ID Number",
+    "nombre": "First Name",
+    "apellido": "Last Name",
+    "fechaNacimiento": "Date of Birth",
+    "telefono": "Phone",
+    "direccion": "Address",
+    "acciones": "Actions",
+    "editar": "Edit",
+    "verHistorias": "View Records",
+    "guardar": "Save",
+    "cancelar": "Cancel"
+  },
+  "historias": {
+    "title": "Clinical Records",
+    "nueva": "New Record",
+    "paciente": "Patient",
+    "version": "Version",
+    "estado": "Status",
+    "fecha": "Date",
+    "acciones": "Actions",
+    "ver": "View",
+    "editar": "Edit",
+    "finalizar": "Finalize",
+    "revision": "Send to Review",
+    "anular": "Cancel Record",
+    "exportar": "Export PDF",
+    "notasGenerales": "General Notes",
+    "guardar": "Save"
+  },
+  "secciones": {
+    "DATOS_INGRESO": "Admission Data",
+    "ANTECEDENTES": "Medical History",
+    "TRABAJO_PARTO": "Labor",
+    "PARTO": "Delivery",
+    "RECIEN_NACIDO": "Newborn",
+    "PUERPERIO": "Postpartum",
+    "MEDICAMENTOS": "Medications",
+    "EVOLUCION": "Evolution"
+  },
+  "voz": {
+    "grabar": "Record Clinical Note",
+    "detener": "Stop Recording",
+    "grabando": "Recording...",
+    "procesando": "Processing transcription...",
+    "noSoportado": "Web Speech API not supported in this browser"
+  },
+  "exportaciones": {
+    "title": "Exports",
+    "generar": "Generate PDF",
+    "descargar": "Download",
+    "estado": "Status",
+    "fecha": "Date",
+    "completado": "Completed",
+    "error": "Error",
+    "procesando": "Processing"
+  },
+  "common": {
+    "cargando": "Loading...",
+    "error": "An error occurred",
+    "sinResultados": "No results",
+    "guardar": "Save",
+    "cancelar": "Cancel",
+    "eliminar": "Delete",
+    "confirmar": "Confirm",
+    "volver": "Back"
+  }
+}

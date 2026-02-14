@@ -1,0 +1,76 @@
+graph TB
+    subgraph Cliente["Cliente (Navegador)"]
+        FE["<b>Frontend React 18</b><br/>TypeScript + Vite + Zustand<br/>Puerto: 5173 (dev)"]
+        WSA["Web Speech API<br/>(es-419)"]
+    end
+
+    subgraph Infraestructura["Infraestructura de Soporte"]
+        EUR["<b>Eureka Server</b><br/>Service Discovery<br/>:8761"]
+        GW["<b>API Gateway</b><br/>Spring Cloud Gateway<br/>Circuit Breaker + CORS<br/>:8080"]
+        RMQ["<b>RabbitMQ</b><br/>Exchange: clinica.events<br/>(Topic)<br/>:5672"]
+        RED["<b>Redis 7</b><br/>Cache / Sesiones<br/>:6379"]
+        ZIP["<b>Zipkin</b><br/>Tracing Distribuido<br/>:9411"]
+    end
+
+    subgraph Microservicios["Microservicios (Hexagonal)"]
+        AUTH["<b>ms-auth</b><br/>Autenticacion JWT + RBAC<br/>:8081"]
+        HC["<b>ms-historia-clinica</b><br/>Core del Dominio<br/>Pacientes + Historias CLAP/OPS<br/>:8082"]
+        TR["<b>ms-transcripcion</b><br/>Procesamiento de Voz<br/>Normalizacion CIE-10<br/>:8083"]
+        AUD["<b>ms-auditoria</b><br/>Trazabilidad Append-Only<br/>:8084"]
+        EXP["<b>ms-exportacion</b><br/>Generacion PDF<br/>Thymeleaf + openhtmltopdf<br/>:8085"]
+    end
+
+    subgraph Bases_de_Datos["Bases de Datos (PostgreSQL 16)"]
+        DB1[("db_auth<br/>:5432")]
+        DB2[("db_historia<br/>:5433")]
+        DB3[("db_transcripcion<br/>:5434")]
+        DB4[("db_auditoria<br/>:5435")]
+        DB5[("db_exportacion<br/>:5436")]
+    end
+
+    FE -->|"HTTPS / REST"| GW
+    WSA -.->|"Texto transcrito"| FE
+
+    GW -->|"/api/auth/**"| AUTH
+    GW -->|"/api/pacientes/**<br/>/api/historias-clinicas/**"| HC
+    GW -->|"/api/transcripciones/**"| TR
+    GW -->|"/api/auditoria/**"| AUD
+    GW -->|"/api/exportaciones/**"| EXP
+
+    AUTH --- EUR
+    HC --- EUR
+    TR --- EUR
+    AUD --- EUR
+    EXP --- EUR
+
+    AUTH -->|Eventos| RMQ
+    HC -->|Eventos| RMQ
+    TR -->|Eventos| RMQ
+    EXP -->|Eventos| RMQ
+    RMQ -->|Consume TODOS| AUD
+
+    EXP -->|"HTTP @LoadBalanced<br/>(via Eureka)"| HC
+
+    AUTH --> DB1
+    HC --> DB2
+    TR --> DB3
+    AUD --> DB4
+    EXP --> DB5
+
+    AUTH -.->|Spans| ZIP
+    HC -.->|Spans| ZIP
+    TR -.->|Spans| ZIP
+    AUD -.->|Spans| ZIP
+    EXP -.->|Spans| ZIP
+
+    classDef frontend fill:#4FC3F7,stroke:#0277BD,color:#000
+    classDef gateway fill:#FFB74D,stroke:#E65100,color:#000
+    classDef service fill:#81C784,stroke:#2E7D32,color:#000
+    classDef infra fill:#CE93D8,stroke:#6A1B9A,color:#000
+    classDef db fill:#FFF176,stroke:#F57F17,color:#000
+
+    class FE,WSA frontend
+    class GW gateway
+    class AUTH,HC,TR,AUD,EXP service
+    class EUR,RMQ,RED,ZIP infra
+    class DB1,DB2,DB3,DB4,DB5 db

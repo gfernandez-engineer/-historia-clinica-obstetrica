@@ -1,0 +1,55 @@
+graph TB
+    subgraph Docker_Network["Red Docker: clinica-network"]
+
+        subgraph Infra["Infraestructura"]
+            PG1["postgres-auth<br/>:5432<br/>db_auth"]
+            PG2["postgres-historia<br/>:5433<br/>db_historia"]
+            PG3["postgres-transcripcion<br/>:5434<br/>db_transcripcion"]
+            PG4["postgres-auditoria<br/>:5435<br/>db_auditoria"]
+            PG5["postgres-exportacion<br/>:5436<br/>db_exportacion"]
+            RMQ["rabbitmq<br/>:5672 (AMQP)<br/>:15672 (Management)"]
+            REDIS["redis<br/>:6379"]
+            ZIPKIN["zipkin<br/>:9411"]
+        end
+
+        subgraph Platform["Plataforma"]
+            EUREKA["eureka-server<br/>:8761"]
+            GATEWAY["api-gateway<br/>:8080<br/>Circuit Breakers x5"]
+        end
+
+        subgraph Services["Microservicios"]
+            S1["ms-auth<br/>:8081"]
+            S2["ms-historia-clinica<br/>:8082"]
+            S3["ms-transcripcion<br/>:8083"]
+            S4["ms-auditoria<br/>:8084"]
+            S5["ms-exportacion<br/>:8085"]
+        end
+    end
+
+    BROWSER["Navegador<br/>React :5173"] -->|":8080"| GATEWAY
+
+    GATEWAY --> EUREKA
+    S1 & S2 & S3 & S4 & S5 --> EUREKA
+
+    S1 --> PG1
+    S2 --> PG2
+    S3 --> PG3
+    S4 --> PG4
+    S5 --> PG5
+
+    S1 & S2 & S3 & S5 -->|"Publish"| RMQ
+    RMQ -->|"Consume"| S4
+
+    S1 & S2 & S3 & S4 & S5 -.->|"Spans"| ZIPKIN
+
+    S5 -->|"HTTP via Eureka"| S2
+
+    classDef infra fill:#E1BEE7,stroke:#6A1B9A,color:#000
+    classDef platform fill:#FFE0B2,stroke:#E65100,color:#000
+    classDef svc fill:#C8E6C9,stroke:#2E7D32,color:#000
+    classDef client fill:#B3E5FC,stroke:#0277BD,color:#000
+
+    class PG1,PG2,PG3,PG4,PG5,RMQ,REDIS,ZIPKIN infra
+    class EUREKA,GATEWAY platform
+    class S1,S2,S3,S4,S5 svc
+    class BROWSER client

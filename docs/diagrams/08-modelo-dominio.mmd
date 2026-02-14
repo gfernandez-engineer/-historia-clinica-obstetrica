@@ -1,0 +1,95 @@
+classDiagram
+    class Paciente {
+        -UUID id
+        -UUID obstetaId
+        -String nombre
+        -String apellido
+        -String dni
+        -LocalDate fechaNacimiento
+        -String telefono
+        -String direccion
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+    }
+
+    class HistoriaClinica {
+        -UUID id
+        -UUID pacienteId
+        -UUID obstretaId
+        -Integer numeroVersion
+        -EstadoHistoria estado
+        -List~SeccionClinica~ secciones
+        -List~EventoObstetrico~ eventos
+        -List~Medicamento~ medicamentos
+        -Long jpaVersion
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+        +crearNuevaVersion() HistoriaClinica
+        +finalizar()
+        +pasarARevision()
+        +anular()
+    }
+
+    class SeccionClinica {
+        -UUID id
+        -UUID historiaClinicaId
+        -TipoSeccion tipo
+        -String contenido
+        -OrigenContenido origen
+        -Integer orden
+        -LocalDateTime createdAt
+    }
+
+    class EventoObstetrico {
+        -UUID id
+        -UUID historiaClinicaId
+        -String tipo
+        -LocalDate fecha
+        -Integer semanaGestacional
+        -String observaciones
+        -LocalDateTime createdAt
+    }
+
+    class Medicamento {
+        -UUID id
+        -UUID historiaClinicaId
+        -String nombre
+        -String dosis
+        -String via
+        -String frecuencia
+        -String duracion
+        -LocalDateTime createdAt
+    }
+
+    class EstadoHistoria {
+        <<enumeration>>
+        BORRADOR
+        EN_REVISION
+        FINALIZADA
+        ANULADA
+    }
+
+    class TipoSeccion {
+        <<enumeration>>
+        DATOS_INGRESO
+        ANTECEDENTES
+        TRABAJO_PARTO
+        PARTO
+        RECIEN_NACIDO
+        PUERPERIO
+        EVOLUCION
+    }
+
+    class OrigenContenido {
+        <<enumeration>>
+        VOZ
+        MANUAL
+    }
+
+    Paciente "1" -- "*" HistoriaClinica : tiene
+    HistoriaClinica "1" *-- "*" SeccionClinica : contiene
+    HistoriaClinica "1" *-- "*" EventoObstetrico : registra
+    HistoriaClinica "1" *-- "*" Medicamento : prescribe
+    HistoriaClinica --> EstadoHistoria : estado
+    SeccionClinica --> TipoSeccion : tipo
+    SeccionClinica --> OrigenContenido : origen

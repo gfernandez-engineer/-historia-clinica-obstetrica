@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant O as Obstetra
+    participant FE as Frontend
+    participant GW as Gateway
+    participant AUTH as Auth
+
+    O->>FE: Ingresa email y password
+    FE->>GW: POST /api/auth/login
+    GW->>AUTH: Proxy request
+    AUTH->>AUTH: Valida credenciales
+    AUTH->>AUTH: Genera JWT 15min y Refresh 7d
+    AUTH-->>GW: accessToken y refreshToken
+    GW-->>FE: 200 OK
+    FE->>FE: Almacena tokens en localStorage

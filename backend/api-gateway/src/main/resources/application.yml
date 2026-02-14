@@ -1,0 +1,116 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    compatibility-verifier:
+      enabled: false
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "http://localhost:5173"
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowed-headers: "*"
+            allow-credentials: true
+      routes:
+        - id: ms-auth
+          uri: lb://ms-auth
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+        - id: ms-historia-clinica
+          uri: lb://ms-historia-clinica
+          predicates:
+            - Path=/api/pacientes/**,/api/historias-clinicas/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: historiaCircuitBreaker
+                fallbackUri: forward:/fallback/historia
+        - id: ms-transcripcion
+          uri: lb://ms-transcripcion
+          predicates:
+            - Path=/api/transcripciones/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: transcripcionCircuitBreaker
+                fallbackUri: forward:/fallback/transcripcion
+        - id: ms-auditoria
+          uri: lb://ms-auditoria
+          predicates:
+            - Path=/api/auditoria/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: auditoriaCircuitBreaker
+                fallbackUri: forward:/fallback/auditoria
+        - id: ms-exportacion
+          uri: lb://ms-exportacion
+          predicates:
+            - Path=/api/exportaciones/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: exportacionCircuitBreaker
+                fallbackUri: forward:/fallback/exportacion
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+    instances:
+      authCircuitBreaker:
+        base-config: default
+      historiaCircuitBreaker:
+        base-config: default
+      transcripcionCircuitBreaker:
+        base-config: default
+      auditoriaCircuitBreaker:
+        base-config: default
+      exportacionCircuitBreaker:
+        base-config: default
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{traceId},%X{spanId}]"
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true

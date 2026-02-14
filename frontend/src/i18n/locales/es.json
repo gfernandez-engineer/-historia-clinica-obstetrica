@@ -1,0 +1,97 @@
+{
+  "app": {
+    "title": "Historia Clinica Obstetrica",
+    "subtitle": "Sistema de gestion clinica por voz"
+  },
+  "nav": {
+    "dashboard": "Inicio",
+    "pacientes": "Pacientes",
+    "historias": "Historias Clinicas",
+    "exportaciones": "Exportaciones",
+    "auditoria": "Auditoria",
+    "logout": "Cerrar Sesion"
+  },
+  "auth": {
+    "login": "Iniciar Sesion",
+    "register": "Registrarse",
+    "email": "Correo electronico",
+    "password": "Contrasena",
+    "nombre": "Nombre",
+    "apellido": "Apellido",
+    "rol": "Rol",
+    "noAccount": "No tienes cuenta?",
+    "hasAccount": "Ya tienes cuenta?",
+    "loginHere": "Inicia sesion aqui",
+    "registerHere": "Registrate aqui"
+  },
+  "pacientes": {
+    "title": "Pacientes",
+    "nuevo": "Nuevo Paciente",
+    "buscar": "Buscar por nombre o DNI...",
+    "dni": "DNI",
+    "nombre": "Nombre",
+    "apellido": "Apellido",
+    "fechaNacimiento": "Fecha de Nacimiento",
+    "telefono": "Telefono",
+    "direccion": "Direccion",
+    "acciones": "Acciones",
+    "editar": "Editar",
+    "verHistorias": "Ver Historias",
+    "guardar": "Guardar",
+    "cancelar": "Cancelar"
+  },
+  "historias": {
+    "title": "Historias Clinicas",
+    "nueva": "Nueva Historia",
+    "paciente": "Paciente",
+    "version": "Version",
+    "estado": "Estado",
+    "fecha": "Fecha",
+    "acciones": "Acciones",
+    "ver": "Ver",
+    "editar": "Editar",
+    "finalizar": "Finalizar",
+    "revision": "Enviar a Revision",
+    "anular": "Anular",
+    "exportar": "Exportar PDF",
+    "notasGenerales": "Notas Generales",
+    "guardar": "Guardar"
+  },
+  "secciones": {
+    "DATOS_INGRESO": "Datos de Ingreso",
+    "ANTECEDENTES": "Antecedentes",
+    "TRABAJO_PARTO": "Trabajo de Parto",
+    "PARTO": "Parto",
+    "RECIEN_NACIDO": "Recien Nacido",
+    "PUERPERIO": "Puerperio",
+    "MEDICAMENTOS": "Medicamentos",
+    "EVOLUCION": "Evolucion"
+  },
+  "voz": {
+    "grabar": "Grabar Nota Clinica",
+    "detener": "Detener Grabacion",
+    "grabando": "Grabando...",
+    "procesando": "Procesando transcripcion...",
+    "noSoportado": "Web Speech API no soportada en este navegador"
+  },
+  "exportaciones": {
+    "title": "Exportaciones",
+    "generar": "Generar PDF",
+    "descargar": "Descargar",
+    "estado": "Estado",
+    "fecha": "Fecha",
+    "completado": "Completado",
+    "error": "Error",
+    "procesando": "Procesando"
+  },
+  "common": {
+    "cargando": "Cargando...",
+    "error": "Ocurrio un error",
+    "sinResultados": "Sin resultados",
+    "guardar": "Guardar",
+    "cancelar": "Cancelar",
+    "eliminar": "Eliminar",
+    "confirmar": "Confirmar",
+    "volver": "Volver"
+  }
+}

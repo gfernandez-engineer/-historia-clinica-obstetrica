@@ -1,0 +1,9 @@
+**/target/
+**/.mvn/
+**/.idea/
+**/*.iml
+**/.settings/
+**/.project
+**/.classpath
+**/node_modules/
+**/.git/

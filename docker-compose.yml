@@ -1,0 +1,290 @@
+services:
+
+  # ==================== Infraestructura ====================
+
+  postgres-auth:
+    image: postgres:16-alpine
+    container_name: clinica-postgres-auth
+    environment:
+      POSTGRES_DB: db_auth
+      POSTGRES_USER: clinica
+      POSTGRES_PASSWORD: clinica_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinica -d db_auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-historia:
+    image: postgres:16-alpine
+    container_name: clinica-postgres-historia
+    environment:
+      POSTGRES_DB: db_historia
+      POSTGRES_USER: clinica
+      POSTGRES_PASSWORD: clinica_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_historia_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinica -d db_historia"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-transcripcion:
+    image: postgres:16-alpine
+    container_name: clinica-postgres-transcripcion
+    environment:
+      POSTGRES_DB: db_transcripcion
+      POSTGRES_USER: clinica
+      POSTGRES_PASSWORD: clinica_dev
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_transcripcion_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinica -d db_transcripcion"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-auditoria:
+    image: postgres:16-alpine
+    container_name: clinica-postgres-auditoria
+    environment:
+      POSTGRES_DB: db_auditoria
+      POSTGRES_USER: clinica
+      POSTGRES_PASSWORD: clinica_dev
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_auditoria_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinica -d db_auditoria"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-exportacion:
+    image: postgres:16-alpine
+    container_name: clinica-postgres-exportacion
+    environment:
+      POSTGRES_DB: db_exportacion
+      POSTGRES_USER: clinica
+      POSTGRES_PASSWORD: clinica_dev
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_exportacion_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinica -d db_exportacion"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: clinica-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: clinica-rabbitmq
+    hostname: clinica-rabbitmq
+    user: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: clinica
+      RABBITMQ_DEFAULT_PASS: clinica_dev
+    tmpfs:
+      - /var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: clinica-zipkin
+    ports:
+      - "9411:9411"
+
+  # ==================== Service Discovery ====================
+
+  eureka-server:
+    build:
+      context: ./backend
+      dockerfile: eureka-server/Dockerfile
+    container_name: clinica-eureka
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8761/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # ==================== API Gateway ====================
+
+  api-gateway:
+    build:
+      context: ./backend
+      dockerfile: api-gateway/Dockerfile
+    container_name: clinica-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+
+  # ==================== Microservicios ====================
+
+  ms-auth:
+    build:
+      context: ./backend
+      dockerfile: ms-auth/Dockerfile
+    container_name: clinica-ms-auth
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/db_auth
+      SPRING_DATASOURCE_USERNAME: clinica
+      SPRING_DATASOURCE_PASSWORD: clinica_dev
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: clinica
+      SPRING_RABBITMQ_PASSWORD: clinica_dev
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+
+  ms-historia-clinica:
+    build:
+      context: ./backend
+      dockerfile: ms-historia-clinica/Dockerfile
+    container_name: clinica-ms-historia
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-historia:5432/db_historia
+      SPRING_DATASOURCE_USERNAME: clinica
+      SPRING_DATASOURCE_PASSWORD: clinica_dev
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: clinica
+      SPRING_RABBITMQ_PASSWORD: clinica_dev
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      postgres-historia:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+
+  ms-transcripcion:
+    build:
+      context: ./backend
+      dockerfile: ms-transcripcion/Dockerfile
+    container_name: clinica-ms-transcripcion
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-transcripcion:5432/db_transcripcion
+      SPRING_DATASOURCE_USERNAME: clinica
+      SPRING_DATASOURCE_PASSWORD: clinica_dev
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: clinica
+      SPRING_RABBITMQ_PASSWORD: clinica_dev
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      postgres-transcripcion:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+
+  ms-auditoria:
+    build:
+      context: ./backend
+      dockerfile: ms-auditoria/Dockerfile
+    container_name: clinica-ms-auditoria
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auditoria:5432/db_auditoria
+      SPRING_DATASOURCE_USERNAME: clinica
+      SPRING_DATASOURCE_PASSWORD: clinica_dev
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: clinica
+      SPRING_RABBITMQ_PASSWORD: clinica_dev
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      postgres-auditoria:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+
+  ms-exportacion:
+    build:
+      context: ./backend
+      dockerfile: ms-exportacion/Dockerfile
+    container_name: clinica-ms-exportacion
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-exportacion:5432/db_exportacion
+      SPRING_DATASOURCE_USERNAME: clinica
+      SPRING_DATASOURCE_PASSWORD: clinica_dev
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: clinica
+      SPRING_RABBITMQ_PASSWORD: clinica_dev
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      EXPORTACION_HISTORIA_CLINICA_URL: http://ms-historia-clinica:8082
+    depends_on:
+      postgres-exportacion:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+
+volumes:
+  postgres_auth_data:
+  postgres_historia_data:
+  postgres_transcripcion_data:
+  postgres_auditoria_data:
+  postgres_exportacion_data:
+  redis_data:

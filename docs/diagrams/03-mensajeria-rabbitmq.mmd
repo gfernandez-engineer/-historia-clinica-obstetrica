@@ -1,0 +1,57 @@
+graph LR
+    subgraph Productores["Productores de Eventos"]
+        P1["ms-auth"]
+        P2["ms-historia-clinica"]
+        P3["ms-transcripcion"]
+        P4["ms-exportacion"]
+    end
+
+    EX{{"<b>clinica.events</b><br/>(Topic Exchange)"}}
+
+    subgraph Routing_Keys["Routing Keys"]
+        RK1["auth.usuario.registrado"]
+        RK2["auth.usuario.login"]
+        RK3["historia.paciente.creado"]
+        RK4["historia.paciente.actualizado"]
+        RK5["historia.clinica.creada"]
+        RK6["historia.clinica.actualizada"]
+        RK7["historia.clinica.finalizada"]
+        RK8["historia.clinica.anulada"]
+        RK9["transcripcion.completada"]
+        RK10["exportacion.pdf.generado"]
+    end
+
+    Q[["<b>clinica.auditoria.queue</b><br/>(Durable)"]]
+
+    subgraph Bindings["Bindings (Wildcards)"]
+        B1["auth.#"]
+        B2["historia.#"]
+        B3["transcripcion.#"]
+        B4["exportacion.#"]
+    end
+
+    CONS["<b>ms-auditoria</b><br/>@RabbitListener<br/>â†’ RegistroAuditoria<br/>(append-only)"]
+
+    P1 --> EX
+    P2 --> EX
+    P3 --> EX
+    P4 --> EX
+
+    EX --> RK1 & RK2 & RK3 & RK4 & RK5 & RK6 & RK7 & RK8 & RK9 & RK10
+
+    RK1 & RK2 -.-> B1
+    RK3 & RK4 & RK5 & RK6 & RK7 & RK8 -.-> B2
+    RK9 -.-> B3
+    RK10 -.-> B4
+
+    B1 & B2 & B3 & B4 --> Q --> CONS
+
+    classDef producer fill:#81C784,stroke:#2E7D32,color:#000
+    classDef exchange fill:#FFB74D,stroke:#E65100,color:#000
+    classDef queue fill:#4FC3F7,stroke:#0277BD,color:#000
+    classDef consumer fill:#EF9A9A,stroke:#C62828,color:#000
+
+    class P1,P2,P3,P4 producer
+    class EX exchange
+    class Q queue
+    class CONS consumer

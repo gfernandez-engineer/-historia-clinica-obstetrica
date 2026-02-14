@@ -1,0 +1,28 @@
+graph TB
+    subgraph Actores["Actores"]
+        OBS(["<b>Obstetra</b><br/>Profesional medico que<br/>atiende pacientes y dicta<br/>notas clinicas por voz"])
+        AUD_U(["<b>Auditor</b><br/>Revisa trazabilidad de<br/>operaciones sobre datos clinicos"])
+        ADM(["<b>Administrador</b><br/>Gestiona usuarios<br/>y roles del sistema"])
+    end
+
+    SIS["<b>Sistema de Historia Clinica<br/>Obstetrica</b><br/><br/>Permite grabar voz durante<br/>atencion clinica y convertirla<br/>en historia clinica estructurada<br/>(CLAP/OPS)"]
+
+    subgraph Externos["Sistemas Externos"]
+        WSAPI["<b>Web Speech API</b><br/>Reconocimiento de voz<br/>del navegador (Chrome/Edge)"]
+        GSTT["<b>Google Speech-to-Text</b><br/>Fallback para transcripcion<br/>de audio WAV/WebM"]
+    end
+
+    OBS -->|"Usa<br/>[HTTPS / navegador]"| SIS
+    AUD_U -->|"Consulta registros<br/>de auditoria<br/>[HTTPS]"| SIS
+    ADM -->|"Gestiona usuarios<br/>y roles<br/>[HTTPS]"| SIS
+
+    SIS -->|"Transcripcion primaria<br/>[JavaScript API]"| WSAPI
+    SIS -->|"Transcripcion fallback<br/>[gRPC / REST]"| GSTT
+
+    classDef actor fill:#08427B,stroke:#052E56,color:#fff
+    classDef system fill:#1168BD,stroke:#0B4884,color:#fff
+    classDef external fill:#999999,stroke:#6B6B6B,color:#fff
+
+    class OBS,AUD_U,ADM actor
+    class SIS system
+    class WSAPI,GSTT external

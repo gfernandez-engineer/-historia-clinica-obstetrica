@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Arquitectura — Historia Clinica Obstetrica por Voz</title>
+<style>
+  @page { size: A3 landscape; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    width: 1587px; /* A3 landscape ~420mm */
+    height: 1123px;
+    padding: 36px 44px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(148,163,184,0.08) 1px, transparent 0);
+    background-size: 24px 24px;
+    pointer-events: none;
+  }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-bottom: 28px;
+  }
+
+  /* ─── Layout ─── */
+  .main {
+    display: flex;
+    gap: 28px;
+    height: calc(100% - 80px);
+  }
+  .col-left {
+    flex: 0 0 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .col-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .col-right {
+    flex: 0 0 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ─── Cards ─── */
+  .card {
+    border-radius: 12px;
+    padding: 18px 20px;
+    position: relative;
+    border: 1px solid rgba(148,163,184,0.12);
+  }
+  .card h3 {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+  }
+  .card .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* Colors */
+  .card-frontend { background: rgba(56,189,248,0.08); border-color: rgba(56,189,248,0.25); }
+  .card-frontend h3 { color: #38bdf8; }
+  .card-frontend .tag { background: rgba(56,189,248,0.15); color: #38bdf8; }
+
+  .card-gateway { background: rgba(168,85,247,0.08); border-color: rgba(168,85,247,0.25); }
+  .card-gateway h3 { color: #a855f7; }
+  .card-gateway .tag { background: rgba(168,85,247,0.15); color: #a855f7; }
+
+  .card-service { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.25); }
+  .card-service h3 { color: #22c55e; }
+  .card-service .tag { background: rgba(34,197,94,0.15); color: #22c55e; }
+
+  .card-infra { background: rgba(251,146,60,0.08); border-color: rgba(251,146,60,0.25); }
+  .card-infra h3 { color: #fb923c; }
+  .card-infra .tag { background: rgba(251,146,60,0.15); color: #fb923c; }
+
+  .card-observ { background: rgba(244,114,182,0.08); border-color: rgba(244,114,182,0.25); }
+  .card-observ h3 { color: #f472b6; }
+  .card-observ .tag { background: rgba(244,114,182,0.15); color: #f472b6; }
+
+  .card-eureka { background: rgba(250,204,21,0.08); border-color: rgba(250,204,21,0.25); }
+  .card-eureka h3 { color: #facc15; }
+  .card-eureka .tag { background: rgba(250,204,21,0.15); color: #facc15; }
+
+  .card-hexa { background: rgba(99,102,241,0.08); border-color: rgba(99,102,241,0.25); }
+  .card-hexa h3 { color: #818cf8; }
+
+  .card-events { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.25); }
+  .card-events h3 { color: #f59e0b; }
+
+  /* ─── Detail text ─── */
+  .detail { font-size: 12px; color: #cbd5e1; line-height: 1.65; }
+  .detail strong { color: #f1f5f9; font-weight: 600; }
+  .detail .mono { font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 11px; color: #94a3b8; }
+
+  /* ─── Microservice row ─── */
+  .ms-row {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+  }
+  .ms-card {
+    flex: 1;
+    border-radius: 12px;
+    padding: 16px 16px 14px;
+    border: 1px solid rgba(34,197,94,0.25);
+    background: rgba(34,197,94,0.06);
+    display: flex;
+    flex-direction: column;
+  }
+  .ms-card .ms-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #22c55e;
+    margin-bottom: 2px;
+  }
+  .ms-card .ms-port {
+    font-size: 11px;
+    color: #86efac;
+    font-family: monospace;
+    margin-bottom: 8px;
+  }
+  .ms-card .ms-desc {
+    font-size: 11px;
+    color: #cbd5e1;
+    line-height: 1.55;
+    flex: 1;
+  }
+  .ms-card .ms-db {
+    margin-top: 8px;
+    font-size: 10px;
+    font-family: monospace;
+    color: #fb923c;
+    background: rgba(251,146,60,0.1);
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    align-self: flex-start;
+  }
+  .ms-card .ms-endpoints {
+    margin-top: 6px;
+    font-size: 10px;
+    color: #94a3b8;
+  }
+
+  /* ─── Arrow connectors ─── */
+  .arrow-down {
+    text-align: center;
+    color: #64748b;
+    font-size: 20px;
+    line-height: 1;
+    padding: 2px 0;
+  }
+  .arrow-label {
+    font-size: 10px;
+    color: #94a3b8;
+    text-align: center;
+    margin-top: -2px;
+  }
+
+  /* ─── Hex diagram ─── */
+  .hex-layers {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    margin: 8px 0;
+  }
+  .hex-layer {
+    border-radius: 8px;
+    padding: 8px 12px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .hex-domain { background: rgba(99,102,241,0.2); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.35); }
+  .hex-app { background: rgba(99,102,241,0.12); color: #c7d2fe; border: 1px solid rgba(99,102,241,0.25); }
+  .hex-infra { background: rgba(99,102,241,0.06); color: #e0e7ff; border: 1px solid rgba(99,102,241,0.15); }
+  .hex-arrow { color: #6366f1; font-size: 16px; }
+
+  /* ─── Flow items ─── */
+  .flow-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .flow-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .flow-text { font-size: 11px; color: #cbd5e1; }
+
+  .badge-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .badge {
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<h1>Arquitectura del Sistema — Historia Clinica Obstetrica por Voz</h1>
+<p class="subtitle">Microservicios hexagonales &bull; Java 21 + Spring Boot 3.3.5 &bull; React 18 + TypeScript &bull; PostgreSQL 16 &bull; RabbitMQ &bull; Docker</p>
+
+<div class="main">
+
+  <!-- ════════ LEFT COLUMN ════════ -->
+  <div class="col-left">
+
+    <!-- Frontend -->
+    <div class="card card-frontend" style="flex:0 0 auto;">
+      <h3>Frontend <span class="tag">:5173</span></h3>
+      <div class="detail">
+        <strong>React 18 + TypeScript + Vite</strong><br>
+        Estado: <strong>Zustand</strong> &bull; HTTP: <strong>Axios</strong> (interceptors JWT)<br>
+        i18n: react-i18next (es/en) &bull; Metadata: react-helmet-async<br>
+        Voz: <strong>Web Speech API</strong> (es-419) tiempo real<br>
+        Tests: Vitest + Testing Library (11 tests)
+      </div>
+      <div class="badge-row" style="margin-top:10px;">
+        <span class="badge" style="background:rgba(56,189,248,0.15);color:#38bdf8;">11 paginas</span>
+        <span class="badge" style="background:rgba(56,189,248,0.15);color:#38bdf8;">5 API clients</span>
+        <span class="badge" style="background:rgba(56,189,248,0.15);color:#38bdf8;">Grabacion voz</span>
+      </div>
+    </div>
+
+    <div class="arrow-down">▼</div>
+    <div class="arrow-label">HTTPS / JWT Bearer</div>
+
+    <!-- API Gateway -->
+    <div class="card card-gateway" style="flex:0 0 auto;">
+      <h3>API Gateway <span class="tag">:8080</span></h3>
+      <div class="detail">
+        <strong>Spring Cloud Gateway</strong><br>
+        Routing a 5 microservicios<br>
+        <strong>Circuit Breakers</strong> Resilience4j (5 rutas)<br>
+        Fallback controller por servicio<br>
+        Rate limiting &bull; Auth centralizada
+      </div>
+    </div>
+
+    <div class="arrow-down">▼</div>
+    <div class="arrow-label">Service Discovery</div>
+
+    <!-- Eureka -->
+    <div class="card card-eureka" style="flex:0 0 auto;">
+      <h3>Eureka Server <span class="tag">:8761</span></h3>
+      <div class="detail">
+        <strong>Spring Cloud Netflix Eureka</strong><br>
+        Registro y descubrimiento de servicios<br>
+        Todos los microservicios se registran automaticamente<br>
+        <span class="mono">@EnableEurekaServer / @EnableDiscoveryClient</span>
+      </div>
+    </div>
+
+    <!-- Hexagonal -->
+    <div class="card card-hexa" style="flex:1;">
+      <h3>Patron Hexagonal (cada servicio)</h3>
+      <div class="hex-layers">
+        <div class="hex-layer hex-infra">Infraestructura<br><span style="font-weight:400;font-size:9px;">Controllers, JPA,<br>RabbitMQ adapters</span></div>
+        <span class="hex-arrow">→</span>
+        <div class="hex-layer hex-app">Aplicacion<br><span style="font-weight:400;font-size:9px;">@Service<br>@Transactional</span></div>
+        <span class="hex-arrow">→</span>
+        <div class="hex-layer hex-domain">Dominio<br><span style="font-weight:400;font-size:9px;">Models, Ports,<br>Exceptions</span></div>
+      </div>
+      <div class="detail" style="margin-top:6px;font-size:10px;">
+        <strong>Ports In:</strong> Use cases (interface + Command record)<br>
+        <strong>Ports Out:</strong> Repos, publishers (interfaces)<br>
+        <strong>Adapters:</strong> REST controllers, JPA persistence, RabbitMQ messaging
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════════ CENTER COLUMN ════════ -->
+  <div class="col-center">
+
+    <div style="text-align:center;margin-bottom:4px;">
+      <span style="font-size:14px;font-weight:600;color:#22c55e;letter-spacing:0.5px;">MICROSERVICIOS (Hexagonal / Ports & Adapters)</span>
+    </div>
+
+    <!-- Row 1: auth + historia -->
+    <div class="ms-row">
+      <div class="ms-card">
+        <div class="ms-name">ms-auth</div>
+        <div class="ms-port">:8081 &bull; db_auth :5432</div>
+        <div class="ms-desc">
+          Registro, login, refresh tokens JWT<br>
+          RBAC: OBSTETRA, AUDITOR, ADMIN<br>
+          Permisos granulares por recurso
+        </div>
+        <div class="ms-endpoints">4 endpoints &bull; 2 migraciones Flyway</div>
+        <div class="ms-db">PostgreSQL &bull; db_auth</div>
+      </div>
+
+      <div class="ms-card">
+        <div class="ms-name">ms-historia-clinica</div>
+        <div class="ms-port">:8082 &bull; db_historia :5433</div>
+        <div class="ms-desc">
+          <strong>Core del dominio</strong><br>
+          CRUD pacientes + historias clinicas<br>
+          Secciones CLAP/OPS, eventos, medicamentos<br>
+          Versionado inmutable, bloqueo optimista
+        </div>
+        <div class="ms-endpoints">11 endpoints &bull; 5 migraciones Flyway &bull; 30 tests</div>
+        <div class="ms-db">PostgreSQL &bull; db_historia</div>
+      </div>
+    </div>
+
+    <!-- Row 2: transcripcion + auditoria + exportacion -->
+    <div class="ms-row">
+      <div class="ms-card">
+        <div class="ms-name">ms-transcripcion</div>
+        <div class="ms-port">:8083 &bull; db_transcripcion :5434</div>
+        <div class="ms-desc">
+          Procesa texto (Web Speech API) o audio<br>
+          Normalizacion medica (~30 terminos CIE-10)<br>
+          Fallback: Google Speech-to-Text stub
+        </div>
+        <div class="ms-endpoints">4 endpoints &bull; 8 tests</div>
+        <div class="ms-db">PostgreSQL &bull; db_transcripcion</div>
+      </div>
+
+      <div class="ms-card">
+        <div class="ms-name">ms-auditoria</div>
+        <div class="ms-port">:8084 &bull; db_auditoria :5435</div>
+        <div class="ms-desc">
+          Consume TODOS los eventos del sistema<br>
+          Almacenamiento append-only (inmutable)<br>
+          Solo AUDITOR / ADMIN
+        </div>
+        <div class="ms-endpoints">1 endpoint &bull; 4 tests</div>
+        <div class="ms-db">PostgreSQL &bull; db_auditoria</div>
+      </div>
+
+      <div class="ms-card">
+        <div class="ms-name">ms-exportacion</div>
+        <div class="ms-port">:8085 &bull; db_exportacion :5436</div>
+        <div class="ms-desc">
+          PDF con Thymeleaf + openhtmltopdf<br>
+          Firma digital + marca de agua<br>
+          Circuit breaker a ms-historia
+        </div>
+        <div class="ms-endpoints">4 endpoints &bull; 8 tests</div>
+        <div class="ms-db">PostgreSQL &bull; db_exportacion</div>
+      </div>
+    </div>
+
+    <!-- Events -->
+    <div class="card card-events" style="flex:0 0 auto;">
+      <h3>Bus de Eventos — RabbitMQ <span style="font-size:11px;font-weight:400;color:#fbbf24;">:5672 / :15672 (management)</span></h3>
+      <div style="display:flex;gap:24px;">
+        <div class="detail" style="flex:1;">
+          <strong>Exchange:</strong> <span class="mono">clinica.events</span> (topic)<br>
+          <strong>Routing keys:</strong> <span class="mono">{servicio}.{recurso}.{accion}</span><br><br>
+          <strong>Ejemplos:</strong><br>
+          <span class="mono">auth.usuario.registrado</span><br>
+          <span class="mono">historia.paciente.creado</span><br>
+          <span class="mono">historia.historia-clinica.finalizada</span><br>
+          <span class="mono">transcripcion.transcripcion.completada</span><br>
+          <span class="mono">exportacion.pdf.generado</span>
+        </div>
+        <div class="detail" style="flex:1;">
+          <strong>Bindings (ms-auditoria):</strong><br>
+          <span class="mono">auth.#</span><br>
+          <span class="mono">historia.#</span><br>
+          <span class="mono">transcripcion.#</span><br>
+          <span class="mono">exportacion.#</span><br><br>
+          <strong>Payload:</strong> AuditableEvent<br>
+          <span style="font-size:10px;color:#94a3b8;">(userId, action, resourceType, resourceId, details, timestamp, ipAddress)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado machine -->
+    <div class="card" style="background:rgba(148,163,184,0.05);border-color:rgba(148,163,184,0.15);flex:0 0 auto;">
+      <h3 style="color:#94a3b8;">Flujo de Estados — Historia Clinica</h3>
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:8px 0;">
+        <span class="badge" style="background:rgba(250,204,21,0.15);color:#facc15;font-size:12px;padding:5px 14px;">BORRADOR</span>
+        <span style="color:#64748b;">→</span>
+        <span class="badge" style="background:rgba(56,189,248,0.15);color:#38bdf8;font-size:12px;padding:5px 14px;">EN_REVISION</span>
+        <span style="color:#64748b;">→</span>
+        <span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e;font-size:12px;padding:5px 14px;">FINALIZADA</span>
+      </div>
+      <div style="text-align:center;">
+        <span style="color:#64748b;font-size:11px;">EN_REVISION tambien puede →</span>
+        <span class="badge" style="background:rgba(239,68,68,0.15);color:#ef4444;font-size:12px;padding:5px 14px;">ANULADA</span>
+      </div>
+      <div style="text-align:center;margin-top:6px;font-size:10px;color:#94a3b8;">
+        Finalizada = inmutable &bull; Nueva edicion via crearNuevaVersion() &bull; Bloqueo optimista @Version
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════════ RIGHT COLUMN ════════ -->
+  <div class="col-right">
+
+    <!-- Infra -->
+    <div class="card card-infra">
+      <h3>Infraestructura</h3>
+      <div class="detail">
+        <strong>Docker Compose</strong> — 15 contenedores<br><br>
+        <strong>Bases de datos (PostgreSQL 16):</strong>
+      </div>
+      <div style="margin:8px 0;font-size:11px;font-family:monospace;color:#fb923c;line-height:1.8;">
+        postgres-auth &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:5432<br>
+        postgres-historia &nbsp;&nbsp;&nbsp;:5433<br>
+        postgres-transcripcion :5434<br>
+        postgres-auditoria &nbsp;&nbsp;:5435<br>
+        postgres-exportacion &nbsp;:5436
+      </div>
+      <div class="detail">
+        <strong>Redis 7</strong> — Cache/sesiones <span class="mono">:6379</span><br>
+        <strong>Migraciones:</strong> Flyway por servicio
+      </div>
+    </div>
+
+    <!-- Observabilidad -->
+    <div class="card card-observ">
+      <h3>Observabilidad</h3>
+      <div class="detail">
+        <strong>Tracing distribuido:</strong><br>
+        Micrometer Brave → Zipkin <span class="mono">:9411</span><br><br>
+        <strong>Metricas:</strong><br>
+        Spring Actuator + Prometheus<br>
+        <span class="mono">/actuator/health, /metrics, /prometheus</span><br><br>
+        <strong>Logs:</strong><br>
+        Dev: console pattern (traceId/spanId)<br>
+        Prod: JSON structured (Logstash encoder)<br>
+        logback-spring.xml en 6 servicios
+      </div>
+    </div>
+
+    <!-- Seguridad -->
+    <div class="card" style="background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.2);">
+      <h3 style="color:#f87171;">Seguridad</h3>
+      <div class="detail">
+        <strong>JWT stateless</strong><br>
+        Access token (15 min) + Refresh token (7 dias)<br>
+        <span class="mono">AuthenticatedUser(userId, email, rol)</span><br><br>
+        <strong>RBAC + Ownership:</strong><br>
+        Obstetra solo ve sus pacientes/historias<br>
+        No-owner → NotFoundException (no revelar existencia)<br><br>
+        <strong>Roles:</strong>
+      </div>
+      <div class="badge-row">
+        <span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e;">OBSTETRA</span>
+        <span class="badge" style="background:rgba(56,189,248,0.15);color:#38bdf8;">AUDITOR</span>
+        <span class="badge" style="background:rgba(168,85,247,0.15);color:#a855f7;">ADMIN</span>
+      </div>
+    </div>
+
+    <!-- Testing -->
+    <div class="card" style="background:rgba(34,197,94,0.04);border-color:rgba(34,197,94,0.15);flex:1;">
+      <h3 style="color:#4ade80;">Testing</h3>
+      <div class="detail">
+        <strong>Backend:</strong> JUnit 5 + Mockito<br>
+        63 tests unitarios<br>
+        6 tests integracion (Testcontainers)<br><br>
+        <strong>Frontend:</strong> Vitest + Testing Library<br>
+        11 tests (authStore, Speech, ProtectedRoute)<br><br>
+        <strong>Cobertura objetivo:</strong><br>
+        Backend: 80% dominio + aplicacion<br>
+        Frontend: 70% hooks + componentes
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+sequenceDiagram
+    participant O as Obstetra
+    participant FE as Frontend
+    participant GW as Gateway
+    participant HC as Historia
+    participant EXP as Exportacion
+    participant RMQ as RabbitMQ
+    participant AUD as Auditoria
+
+    O->>FE: Finalizar historia
+    FE->>GW: PATCH /api/historias-clinicas/id/finalizar
+    GW->>HC: Proxy
+    HC->>HC: Estado pasa a FINALIZADA
+    HC->>RMQ: historia.clinica.finalizada
+    RMQ->>AUD: Registra auditoria
+    HC-->>FE: OK
+
+    O->>FE: Exportar PDF
+    FE->>GW: POST /api/exportaciones
+    GW->>EXP: Proxy
+    EXP->>HC: GET historia completa via Eureka
+    HC-->>EXP: DatosHistoriaClinica
+    EXP->>EXP: Genera PDF con Thymeleaf
+    EXP->>RMQ: exportacion.pdf.generado
+    RMQ->>AUD: Registra auditoria
+    EXP-->>FE: ExportJob creado
+
+    O->>FE: Descargar PDF
+    FE->>GW: GET /api/exportaciones/id/descargar
+    GW->>EXP: Proxy
+    EXP-->>FE: PDF como blob
